@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% block 'page_title' %}Crud App{% endblock %}
+{% block 'content' %}
+
+<div class="container">
+    <div class="table-wrapper">
+        <div class="table-title">
+            <div class="row">
+                <div class="col-sm-8"><h2>Employee <b>Details</b></h2></div>
+              
+            </div>
+        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody id="usersdata">
+                {% for data in first_page %}
+                    <tr>
+                        <td>{{ data.id }}</td>
+                        <td>{{ data.username }}</td>
+                        <td>{{ data.firstname }}</td>
+                        <td>{{ data.lastname }}</td>
+                        <td>{{ data.email }}</td>
+                    </tr>
+                {% endfor %}
+                
+            </tbody>
+            
+        </table>
+        <nav aria-label="Page navigation example" class="nav-list">
+            <ul class="pagination">
+                {% for i in page_range %}
+                <li class="page-item"><a class="page-link" href="{{i}}">{{i}}</a></li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
+<div class="center">
+ <button type="button" onclick="hidedata('getform')" class="btn btn-primary">GET</button>
+<button type="button" onclick="hidedata('postform')" class="btn btn-secondary">POST</button>
+<button type="button" onclick="hidedata('putform')" class="btn btn-success">PUT</button>
+<button type="button" onclick="hidedata('deleteform')" class="btn btn-danger">DELETE</button>
+</div>
+</div> 
+<div class="container" style="margin-bottom: 35px;">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3>Request</h3>
+        <div class="request_section">
+              <div class="getform requestshow">
+                <div class="form-group ">
+                  <label for="exampleInputEmail1">Please Enter User ID</label>
+                  <input type="text" class="form-control" id="userid" placeholder="Please Enter User id">
+                </div>
+                <button type="submit" onclick="getuserbyid()"class="btn btn-primary">Submit</button>
+            </div>
+
+            <div class="putform requestshow">
+                <div class="form-group ">
+                    <label for="exampleInputEmail1">User Id</label>
+                    <input type="text" class="form-control" id="update_id" placeholder="Please Enter User Id">
+                  </div>
+                <div class="form-group ">
+                  <label for="exampleInputEmail1">Username</label>
+                  <input type="text" class="form-control" id="update_username" placeholder="Please Enter Username">
+                </div>
+                <div class="form-group ">
+                    <label for="exampleInputEmail1">First Name</label>
+                    <input type="text" class="form-control" id="update_firstname" placeholder="Please Enter First Name">
+                </div>
+                <div class="form-group ">
+                    <label for="exampleInputEmail1">Last Name</label>
+                    <input type="text" class="form-control" id="update_lastname" placeholder="Please Enter Last Name">
+                </div>
+                <div class="form-group ">
+                    <label for="exampleInputEmail1">Email</label>
+                    <input type="text" class="form-control" id="update_email" placeholder="Please Email">
+                </div>
+                <button type="submit" onclick="update()"class="btn btn-primary">Submit</button>
+            </div>
+            <div class="postform requestshow">
+                <div class="form-group ">
+                  <label for="exampleInputEmail1">Username</label>
+                  <input type="text" class="form-control" id="username" placeholder="Please Enter Username">
+                </div>
+                <div class="form-group ">
+                    <label for="exampleInputEmail1">First Name</label>
+                    <input type="text" class="form-control" id="firstname" placeholder="Please Enter First Name">
+                </div>
+                <div class="form-group ">
+                    <label for="exampleInputEmail1">Last Name</label>
+                    <input type="text" class="form-control" id="lastname" placeholder="Please Enter Last Name">
+                </div>
+                <div class="form-group ">
+                    <label for="exampleInputEmail1">Email</label>
+                    <input type="text" class="form-control" id="email" placeholder="Please Email">
+                </div>
+                <button type="submit" onclick="store()"class="btn btn-primary">Submit</button>
+            </div>
+            <div class="deleteform requestshow">
+                <div class="form-group ">
+                  <label for="exampleInputEmail1">Please Enter User ID</label>
+                  <input type="text" class="form-control" id="delete_userid" placeholder="Please Enter User id">
+                </div>
+                <button type="submit" onclick="deleteuserid()"class="btn btn-primary">Submit</button>
+            </div>
+        </div> 
+      </div>
+      <div class="col-sm-6">
+        <h3>Response</h3>
+        <div class="response_section">
+            <div class="se-pre-con"></div>
+
+            <p class="response_data"></p>
+        </div>
+      </div>
+    </div>
+</div>
+
+<script>
+    function refreshdata(){
+        var page_no = $('.page-item active a').attr('href');
+        
+        if(page_no==undefined){
+            var page_no=1;  
+        }
+        $.ajax({
+            type: "POST",
+            // define url name
+            url: "{% url 'index' %}", 
+            data : {   
+            page_no : page_no,  
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        },
+        // handle a successful response
+        success: function (response) {
+            $('#usersdata').html('')
+            var count=1;
+            $.each(response.results, function(i, val) {
+             //append to post
+             $('#usersdata').append("<tr><td>"+val.id+"</td><td>" +val.username+ "</td><td>"+ val.firstname + "</td><td>" + val.lastname + "</td><td>" + val.email + "</td></tr>")
+             count++;
+            });
+        },
+        error: function () {
+            alert('Error Occured');
+        }
+    }); 
+    
+    }
+    
+    
+        $('.page-item a').click(function(event){
+            // preventing default actions
+            event.preventDefault();
+            var page_no = $(this).attr('href');
+            // ajax call
+                $.ajax({
+                        type: "POST",
+                        // define url name
+                        url: "{% url 'index' %}", 
+                        data : {    
+                        page_no : page_no, 
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                    },
+                    // handle a successful response
+                    success: function (response) {
+                        $('#usersdata').html('')
+                        var count=1;
+                        $.each(response.results, function(i, val) {
+                         //append to post
+                         $('#usersdata').append("<tr><td>"+val.id+"</td><td>" +val.username+ "</td><td>"+ val.firstname + "</td><td>" + val.lastname + "</td><td>" + val.email + "</td></tr>")
+                         count++;
+                        });
+                    },
+                    error: function () {
+                        alert('Error Occured');
+                    }
+                }); 
+        });    
+        
+        function getuserbyid(){
+          var userid=$('#userid').val();
+          $('body').css('opacity','0.3');
+          $.ajax({
+                  type: "GET",
+                  // define url name
+                  url: "{% url 'userapi' %}", 
+                  data : {    
+                  user_id : userid, 
+                  csrfmiddlewaretoken: '{{ csrf_token }}',
+              },
+              // handle a successful response
+              success: function (response) {
+               $('.response_data').JSONView(response);
+               $('body').css('opacity','1');
+               $('.container').find('input:text').val('');    
+    
+            },
+            error: function () {
+                alert('Error Occured');
+                $('body').css('opacity','1');
+    
+            }
+        }); 
+        }
+    
+        function hidedata(data){
+        $('.requestshow').css('display','none');
+         $("."+data+"").css('display','block');
+        }
+    
+    
+    
+    
+        function store(){
+            var username=$('#username').val();
+            var firstname=$('#firstname').val();
+            var lastname=$('#lastname').val();
+            var email=$('#email').val();
+            $('body').css('opacity','0.3');
+            $.ajax({
+                    type: "POST",
+                    // define url name
+                    url: "{% url 'userapi' %}", 
+                    data : {    
+                    username : username, 
+                    firstname : firstname, 
+                    lastname : lastname, 
+                    email : email, 
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                },
+                // handle a successful response
+                success: function (response) {
+                 $('.response_data').JSONView(response);
+                 $('body').css('opacity','1');
+                 refreshdata();
+                 $('.container').find('input:text').val('');    
+    
+              },
+              error: function () {
+                  alert('Error Occured');
+                  $('body').css('opacity','1');
+      
+              }
+          }); 
+          }
+    
+    
+          
+    
+        function update(){
+            var id=$('#update_id').val();
+            if(id==""){
+                alert('Please Enter the value of Id');
+                return false;
+            }
+            var username=$('#update_username').val();
+            var firstname=$('#update_firstname').val();
+            var lastname=$('#update_lastname').val();
+            var email=$('#update_email').val();
+            $('body').css('opacity','0.3');
+            $.ajax({
+                    type: "POST",
+                    // define url name
+                    url: "{% url 'userupdate' %}", 
+                    data : {  
+                    id:id,  
+                    username : username, 
+                    firstname : firstname, 
+                    lastname : lastname, 
+                    email : email, 
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                },
+                // handle a successful response
+                success: function (response) {
+                 $('.response_data').JSONView(response);
+                 $('body').css('opacity','1');
+                 refreshdata();
+                 $('.container').find('input:text').val('');    
+    
+              },
+              error: function () {
+                  alert('Error Occured');
+                  $('body').css('opacity','1');
+      
+              }
+          }); 
+          }
+    
+     function deleteuserid(){
+        var id=$('#delete_userid').val();
+        if(id==""){
+            alert('Please Enter the value of Id');
+            return false;
+        }
+        if (confirm("Are You Sure want to this user id ?") == true) {
+          
+        }
+        $('body').css('opacity','0.3');
+        $.ajax({
+                type: "POST",
+                // define url name
+                url: "{% url 'delete' %}", 
+                data : {  
+                id:id,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+            // handle a successful response
+            success: function (response) {
+             $('.response_data').JSONView(response);
+             $('body').css('opacity','1');
+             refreshdata();
+             $('.container').find('input:text').val('');    
+    
+          },
+          error: function () {
+              alert('Error Occured');
+              $('body').css('opacity','1');
+    
+          }
+      }); 
+    
+          }
+    
+          $('.nav-list').on('click', 'li', function() {
+            $('.nav-list li.active').removeClass('active');
+            $(this).addClass('active');
+        });
+        </script>
+        {% endblock  %}

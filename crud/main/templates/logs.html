@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block 'page_title' %}Crud App{% endblock %}
+{% block 'content' %}
+
+<div class="container">
+    <div class="table-wrapper">
+        <div class="table-title">
+            <div class="row">
+                <div class="col-sm-8"><h2>Logs <b>Details</b></h2></div>
+              
+            </div>
+        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Log Type</th>
+                    <th>Log Message</th>
+                </tr>
+            </thead>
+            <tbody id="usersdata">
+                {% for data in first_page %}
+                    <tr>
+                        <td>{{ data.id }}</td>
+                        <td>{{ data.logtype }}</td>
+                        <td>{{ data.text }}</td>
+                    </tr>
+                {% endfor %}
+                
+            </tbody>
+        </table>
+        <nav aria-label="Page navigation example" class="nav-list">
+            <ul class="pagination">
+                {% for i in page_range %}
+                <li class="page-item"><a class="page-link" href="{{i}}">{{i}}</a></li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
+
+</div>
+</div> 
+<script>
+        
+    $('.page-item a').click(function(event){
+        // preventing default actions
+        event.preventDefault();
+        var page_no = $(this).attr('href');
+        // ajax call
+            $.ajax({
+                    type: "POST",
+                    // define url name
+                    url: "{% url 'logs' %}", 
+                    data : {    
+                    page_no : page_no, 
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                },
+                // handle a successful response
+                success: function (response) {
+                    $('#usersdata').html('')
+                    var count=1;
+                    $.each(response.results, function(i, val) {
+                     //append to post
+                     $('#usersdata').append("<tr><td>"+val.id+"</td><td>" +val.logtype+ "</td><td>"+ val.text + "</td></tr>")
+                     count++;
+                    });
+                },
+                error: function () {
+                    alert('Error Occured');
+                }
+            }); 
+    });  
+</script>
+{% endblock  %}
